@@ -9,6 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.pedrodev.exceptions.ErroNegocioException;
 import com.pedrodev.exceptions.UsuarioExistenteException;
 import com.pedrodev.models.Usuario;
 import com.pedrodev.models.UsuarioDTO;
@@ -28,7 +29,7 @@ public class UsuarioService {
 		UserDetails usu = usuarioRepository.findByEmail(usuario.getEmail());
 		
 		if(usu != null) {
-			throw new UsuarioExistenteException("Usuário já existente");
+			throw new ErroNegocioException("Usuário já existente");
 		}
 		
 		String senhaCript = passwordEncoder.encode(usuario.getSenha());

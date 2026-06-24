@@ -1,26 +1,42 @@
 package com.pedrodev.exceptions;
 
+import java.time.LocalDateTime;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 	
-	@ExceptionHandler(UsernameNotFoundException.class)
-	public ResponseEntity<String> handleUsuarioNaoEncontrado(UsernameNotFoundException ex){
-		return ResponseEntity.badRequest().body(ex.getMessage());
+	
+	
+	@ExceptionHandler(ErroNegocioException.class)
+	public ResponseEntity<ErrorResponse> handleErroNegocio(ErroNegocioException ex){
+		ErrorResponse errorResponse = new ErrorResponse(
+			HttpStatus.BAD_REQUEST.value(),
+			"Erro de négocio",
+			ex.getMessage(),
+			LocalDateTime.now()
+		);
+		
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 	}
 	
-	@ExceptionHandler(PlacaInvalidaException.class)
-	public ResponseEntity<String> handlePlacaInvalida(PlacaInvalidaException ex){
-		return ResponseEntity.badRequest().body(ex.getMessage());
-	}
-	
-	@ExceptionHandler(EstacionamentoExistenteException.class)
-	public ResponseEntity<String> handleEstacionamentoExistente(EstacionamentoExistenteException ex){
-		return ResponseEntity.badRequest().body(ex.getMessage());
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ErrorResponse> handleGenericNegocio(Exception ex){
+		ErrorResponse errorResponse = new ErrorResponse(
+			HttpStatus.BAD_REQUEST.value(),
+			"Erro interno",
+			ex.getMessage(),
+			LocalDateTime.now()
+		);
+		
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 	}
 
 }

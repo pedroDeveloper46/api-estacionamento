@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.pedrodev.enums.StatusEstacionamento;
-import com.pedrodev.exceptions.EstacionamentoExistenteException;
+import com.pedrodev.exceptions.ErroNegocioException;
 import com.pedrodev.exceptions.EstacionamentoNaoAtivoException;
 import com.pedrodev.exceptions.EstacionamentoNaoEncontradoException;
 import com.pedrodev.exceptions.PlacaInvalidaException;
@@ -31,11 +31,11 @@ public class EstacionamentoService {
 	public Estacionamento cadastrarEntrada(Estacionamento estacionamento) {
 		
 		if(!estacionamento.validarPlacaFormatoAntigo() && !estacionamento.validarPlacaFormatoNovo()) {
-			throw new PlacaInvalidaException("A placa é inválida");
+			throw new ErroNegocioException("A placa é inválida");
 		}
 		
 		if(buscarEntradaPelaPlaca(estacionamento.getPlaca(), StatusEstacionamento.ATIVO)) {
-			throw new EstacionamentoExistenteException("O carro já está estacionado");
+			throw new ErroNegocioException("O carro já está estacionado");
 		}
 		
 		ZoneId zoneBr = ZoneId.of("America/Sao_Paulo");
@@ -61,7 +61,7 @@ public class EstacionamentoService {
 		Estacionamento estacionamento = buscarEstacionamentoPorId(id);
 		
 		if (estacionamento.getStatus() != StatusEstacionamento.ATIVO) {
-			throw new EstacionamentoNaoAtivoException("O carro "+estacionamento.getPlaca()+" já saiu do estacionamento");
+			throw new ErroNegocioException("O carro "+estacionamento.getPlaca()+" já saiu do estacionamento");
 		}
 		
 		estacionamento.setSaidaReal(horaAtual());
@@ -89,7 +89,7 @@ public class EstacionamentoService {
 	private Estacionamento buscarEstacionamentoPorId(Integer id) {
 		
 		return estacionamentoRepository.findById(id).
-				orElseThrow(() -> new EstacionamentoNaoEncontradoException("Estacionamento não encontrado"));
+				orElseThrow(() -> new ErroNegocioException("Estacionamento não encontrado"));
 		
 	}
 	
