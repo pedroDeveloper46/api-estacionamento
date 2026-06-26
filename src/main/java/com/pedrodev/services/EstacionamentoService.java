@@ -8,12 +8,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.pedrodev.enums.StatusEstacionamento;
 import com.pedrodev.exceptions.ErroNegocioException;
-import com.pedrodev.exceptions.EstacionamentoNaoAtivoException;
-import com.pedrodev.exceptions.EstacionamentoNaoEncontradoException;
-import com.pedrodev.exceptions.PlacaInvalidaException;
 import com.pedrodev.models.Estacionamento;
 import com.pedrodev.repositories.EstacionamentoRepository;
 import com.pedrodev.utils.TempoUtils;

@@ -10,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pedrodev.exceptions.ErroNegocioException;
-import com.pedrodev.exceptions.UsuarioExistenteException;
+
 import com.pedrodev.models.Usuario;
 import com.pedrodev.models.UsuarioDTO;
 import com.pedrodev.repositories.UsuarioRepository;
