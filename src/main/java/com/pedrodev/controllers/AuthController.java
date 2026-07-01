@@ -21,43 +21,40 @@ import com.pedrodev.services.TokenService;
 
 import jakarta.validation.Valid;
 
-@RestController
-@RequestMapping(path="/autenticacao")
+@RestController //* Define que esta classe é um controller REST (retorna JSON)
+@RequestMapping(path="/autenticacao") //* Define o prefixo da rota para todos os endpoints deste controller
 public class AuthController {
-	
-	@Autowired
-	private AuthenticationManager authenticationManager;
-	
-	@Autowired
-	private TokenService tokenService;
-	
-	@PostMapping(path="/login")
-	public ResponseEntity<?> login(@RequestBody @Valid LoginDTO login) {
-		
-			
-		try {
-	        var usernamePassword = new UsernamePasswordAuthenticationToken(
-	            login.getEmail(), login.getSenha()
-	        );
+    
+    @Autowired
+    private AuthenticationManager authenticationManager; //* Injeta o gerenciador de autenticação do Spring Security
+    
+    @Autowired
+    private TokenService tokenService; //* Injeta o serviço responsável por gerar e validar tokens JWT
+    
+    @PostMapping(path="/login") //* Define o endpoint POST /autenticacao/login
+    public ResponseEntity<?> login(@RequestBody @Valid LoginDTO login) { //* Recebe o corpo da requisição com email e senha (validados)
+        
+        try {
+            var usernamePassword = new UsernamePasswordAuthenticationToken(
+                login.getEmail(), login.getSenha() //* Cria um objeto de autenticação com email e senha
+            );
 
-	        var auth = authenticationManager.authenticate(usernamePassword);
+            var auth = authenticationManager.authenticate(usernamePassword); //* Autentica o usuário usando o AuthenticationManager
 
-	        var token = tokenService.generateToken((Usuario) auth.getPrincipal());
+            var token = tokenService.generateToken((Usuario) auth.getPrincipal()); //* Gera um token JWT para o usuário autenticado
 
-	        return ResponseEntity.ok(new LoginResponseDTO(token));
+            return ResponseEntity.ok(new LoginResponseDTO(token)); //* Retorna 200 OK com o token no corpo da resposta
 
-	    } catch (AuthenticationException e) {
-	    	
-	    	ErrorResponse errorResponse = new ErrorResponse(
-	    		HttpStatus.BAD_REQUEST.value(),
-	    		"Erro de negócio",
-	    		"Credenciais inválidas: Verifique seu e-mail e senha",
-	    		LocalDateTime.now()
-	    	
-	    	);
-	    	
-	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-	    }
-	}
-
+        } catch (AuthenticationException e) { //* Caso a autenticação falhe (credenciais inválidas)
+            
+            ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(), //* Código HTTP 400
+                "Erro de negócio", //* Tipo de erro
+                "Credenciais inválidas: Verifique seu e-mail e senha", //* Mensagem amigável para o usuário
+                LocalDateTime.now() //* Timestamp do erro
+            );
+            
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse); //* Retorna 400 com JSON estruturado de erro
+        }
+    }
 }
