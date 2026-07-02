@@ -1,5 +1,7 @@
 package com.pedrodev.services;
 
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -21,7 +23,20 @@ public class EstacionamentoService {
 	private EstacionamentoRepository estacionamentoRepository;
 	
 	public List<Estacionamento> listarTodosEstacionados(){
-		return estacionamentoRepository.findAllByStatus(StatusEstacionamento.ATIVO);
+		return estacionamentoRepository.findAllOrderByHorarioEntrada();
+	}
+	
+	public List<Estacionamento> filtrar(String placa, String tempoDesejado, String status){
+		
+		StatusEstacionamento statusEstacionamento = status != null ? StatusEstacionamento.valueOf(status) : null;
+		
+		List<Estacionamento> lista = estacionamentoRepository.filtrar(placa, tempoDesejado, statusEstacionamento);
+		
+		if (lista.isEmpty() || lista == null) {
+			throw new ErroNegocioException("Sem resultado");
+		}
+		
+		return lista;
 	}
 	
 	public Estacionamento cadastrarEntrada(Estacionamento estacionamento) {
@@ -34,6 +49,8 @@ public class EstacionamentoService {
 			throw new ErroNegocioException("O carro já está estacionado");
 		}
 		
+		
+		
 		ZoneId zoneBr = ZoneId.of("America/Sao_Paulo");
 		
 		estacionamento.setHorarioEntrada(LocalDateTime.now(zoneBr).truncatedTo(ChronoUnit.SECONDS));
@@ -43,9 +60,7 @@ public class EstacionamentoService {
 		estacionamento.setPrevistoSaida(estacionamento.getHorarioEntrada().plusMinutes(minutosHorarioPrevisto));
 		
 		estacionamento.setValorCobranca(gerarValorCobranca(minutosHorarioPrevisto));
-		
-		estacionamento.arredondaCobranca();
-		
+				
 		estacionamento.setStatus(StatusEstacionamento.ATIVO);
 		
 		return estacionamentoRepository.save(estacionamento);
@@ -62,11 +77,7 @@ public class EstacionamentoService {
 		
 		estacionamento.setSaidaReal(horaAtual());
 		
-		int minutosHorarioPrevisto = TempoUtils.converterParaMinutos(estacionamento.getTempoDesejado());
-		
-		int minutosSaida = estacionamento.diferencaHoras();
-		
-		estacionamento.setValorCobranca(definirValorFinal(minutosHorarioPrevisto, minutosSaida));
+		estacionamento.setValorCobranca(definirValorFinal(estacionamento.getHorarioEntrada(), estacionamento.getSaidaReal()));
 		
 		estacionamento.setStatus(StatusEstacionamento.FINALIZADO);
 		
@@ -74,15 +85,11 @@ public class EstacionamentoService {
 		
 		return estacionamentoRepository.save(estacionamento);
 		
-		//implementar um metodo que verifique se a quant de minutos previstos bate com os minutos reais
-		  //1 - Se bater, não tem alteração no valor
-		  //2 - Se houver pra cima, pegar o valor e adicionar a fração necessária
-		  //3 - Se houver pra baixo, cobrar apenas uma hora (se o carro ficar acima de 15min)
 		
 		
 	}
 	
-	private Estacionamento buscarEstacionamentoPorId(Integer id) {
+	public Estacionamento buscarEstacionamentoPorId(Integer id) {
 		
 		return estacionamentoRepository.findById(id).
 				orElseThrow(() -> new ErroNegocioException("Estacionamento não encontrado"));
@@ -99,17 +106,21 @@ public class EstacionamentoService {
 		
 	}
 	
-	private double gerarValorCobranca(int minutos) {
-		return (Math.ceil(minutos / 30.0)  * 5);
+	private BigDecimal gerarValorCobranca(int minutos) {
+		return new BigDecimal(Math.ceil(minutos / 30.0)  * 5);
 	}
 	
-	public Double definirValorFinal(int minutosSaidaPrevista, int minutosSaida) {
+	public BigDecimal definirValorFinal(LocalDateTime horarioEntrada, LocalDateTime horarioSaida) {
 		
-		double valor = 0.0;
+		BigDecimal valor = new BigDecimal(0.0);
 		
-		if((minutosSaidaPrevista == minutosSaida) || (minutosSaida > minutosSaidaPrevista) || minutosSaida > 15) {
-			valor = gerarValorCobranca(minutosSaida);
+		int minutosTotais = (int) Duration.between(horarioEntrada, horarioSaida)
+				.toMinutes();
+		
+		if(minutosTotais > 15) {
+			valor = gerarValorCobranca(minutosTotais);
 		}
+		
 		
 		return valor;
 		

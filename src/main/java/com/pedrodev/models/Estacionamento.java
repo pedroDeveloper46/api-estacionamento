@@ -1,5 +1,6 @@
 package com.pedrodev.models;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -45,8 +46,8 @@ public class Estacionamento {
 	@Column(nullable = true, columnDefinition = "DATETIME(0)")
 	private LocalDateTime saidaReal;
 	
-
-	private Double valorCobranca;
+	@Column(precision = 10, scale = 2)
+	private BigDecimal valorCobranca;
 	
 	
 	@Enumerated(EnumType.STRING)
@@ -62,7 +63,7 @@ public class Estacionamento {
 	}
 	
 	public void arredondaCobranca() {
-		this.valorCobranca = Math.round(this.valorCobranca * 100.0) / 100.0;
+		//this.valorCobranca = Math.round(this.valorCobranca * 100.0) / 100.0;
 	}
 	
 	

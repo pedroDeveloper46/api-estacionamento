@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,6 +37,24 @@ public class GlobalExceptionHandler {
 			LocalDateTime.now()
 		);
 		
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+	}
+	
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ErrorResponse> handleValdationException(MethodArgumentNotValidException e){
+		
+		String messagem = e.getBindingResult().getFieldErrors().stream()
+				.map(error -> error.getDefaultMessage())
+				.findFirst()
+				.orElse("Erro de validação");
+		
+		ErrorResponse errorResponse = new ErrorResponse(
+				HttpStatus.BAD_REQUEST.value(),
+				"Erro de validção",
+				messagem,
+				LocalDateTime.now()
+		);
+			
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 	}
 
